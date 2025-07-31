@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>لوحة التحكم – Tech Time</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background-color: #121212;
+      color: #fff;
+      font-family: 'Cairo', sans-serif;
+      padding: 30px;
+    }
+    h2 {
+      color: #00e5ff;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    section {
+      background-color: #1f1f1f;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+      box-shadow: 0 0 10px #000;
+    }
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1em;
+      border: none;
+    }
+    input, select {
+      background-color: #2a2a2a;
+      color: #fff;
+      border: 1px solid #444;
+    }
+    button {
+      background-color: #00bcd4;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00e5ff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #333;
+    }
+    th {
+      background-color: #1f1f1f;
+      color: #00e5ff;
+    }
+    td img {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background-color: #222;
+      padding: 30px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 500px;
+    }
+    .modal-content h3 {
+      color: #00e5ff;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 600px) {
+      body { padding: 15px; }
+      section { padding: 15px; }
+      form { flex-direction: column; }
+      th, td { font-size: 0.9em; }
+    }
+  </style>
+</head>
+<body>
+    <!-- نموذج تسجيل الدخول -->
+<section id="login-section">
+  <h2>تسجيل الدخول</h2>
+  <form id="login-form">
+    <input type="email" id="login-email" placeholder="البريد الإلكتروني" required />
+    <input type="password" id="login-password" placeholder="كلمة المرور" required />
+    <button type="submit">دخول</button>
+  </form>
+</section>
+
+<!-- لوحة التحكم -->
+<section id="admin-panel" style="display:none;">
+  <h2>إدارة المنتجات</h2>
+  <form id="product-form">
+    <input type="text" id="product-name" placeholder="اسم المنتج" required />
+    <input type="text" id="product-price" placeholder="السعر" required />
+    <input type="text" id="product-image" placeholder="رابط الصورة" required />
+    <select id="product-category" required>
+      <option value="" disabled selected>اختر الفئة</option>
+    </select>
+    <button type="submit">إضافة منتج</button>
+  </form>
+  <table id="products-table">
+    <thead>
+      <tr>
+        <th>#</th><th>اسم المنتج</th><th>السعر</th><th>الفئة</th><th>الصورة</th><th>إجراءات</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>إدارة الفئات</h2>
+  <form id="category-form">
+    <input type="text" id="category-name" placeholder="اسم الفئة" required />
+    <input type="text" id="category-image" placeholder="رابط الصورة" required />
+    <button type="submit">إضافة فئة</button>
+  </form>
+  <table id="categories-table">
+    <thead>
+      <tr><th>#</th><th>اسم الفئة</th><th>الصورة</th><th>إجراءات</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button onclick="logout()" style="margin-top: 20px; background-color: #ff4444; color: white; padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">🚪 تسجيل خروج</button>
+</section>
+
+<!-- نافذة تعديل المنتج -->
+<div id="edit-product-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeProductModal()">×</span>
+    <h3>تعديل المنتج</h3>
+    <input type="text" id="edit-product-name" />
+    <input type="text" id="edit-product-price" />
+    <input type="text" id="edit-product-image" />
+    <select id="edit-product-category"></select>
+    <button onclick="saveProductEdit()">💾 حفظ التعديلات</button>
+  </div>
+</div>
+
+<!-- نافذة تعديل الفئة -->
+<div id="edit-category-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeCategoryModal()">×</span>
+    <h3>تعديل الفئة</h3>
+    <input type="text" id="edit-category-name" />
+    <input type="text" id="edit-category-image" />
+    <button onclick="saveCategoryEdit()">💾 حفظ التعديلات</button>
+  </div>
+</div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+  import {
+    getFirestore, collection, getDocs,
+    addDoc, updateDoc, deleteDoc, doc
+  } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+  import {
+    getAuth, signInWithEmailAndPassword, signOut
+  } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDs0Qfyifd_H95HcxbGHW4CZUWpSP63v74",
+    authDomain: "techtime-89662.firebaseapp.com",
+    projectId: "techtime-89662",
+    storageBucket: "techtime-89662.firebasestorage.app",
+    messagingSenderId: "1080372321090",
+    appId: "1:1080372321090:web:4d29822dae5331b08406db"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  let currentProductId = "", currentCategoryId = "";
+
+  // تسجيل دخول
+  document.getElementById("login-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const email = document.getElementById("login-email").value;
+    const pass = document.getElementById("login-password").value;
+
+    signInWithEmailAndPassword(auth, email, pass).then(() => {
+      document.getElementById("login-section").style.display = "none";
+      document.getElementById("admin-panel").style.display = "block";
+      loadCategories(); loadProducts();
+    }).catch(err => alert("❌ فشل الدخول: " + err.message));
+  });
+
+  // تسجيل خروج
+  window.logout = function () {
+    signOut(auth).then(() => {
+      document.getElementById("admin-panel").style.display = "none";
+      document.getElementById("login-section").style.display = "block";
+    });
+  };
+
+  // تحميل الفئات
+  function loadCategories() {
+    const tbody = document.querySelector("#categories-table tbody");
+    const select = document.getElementById("product-category");
+    const editSelect = document.getElementById("edit-product-category");
+
+    tbody.innerHTML = "";
+    select.innerHTML = '<option value="" disabled selected>اختر الفئة</option>';
+    editSelect.innerHTML = '';
+
+    getDocs(collection(db, "categories")).then(snapshot => {
+      snapshot.forEach((docSnap, i) => {
+        const data = docSnap.data();
+        const id = docSnap.id;
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${data.name}</td>
+            <td><img src="${data.image}" /></td>
+            <td>
+              <button onclick="openCategoryModal('${id}', '${data.name}', '${data.image}')">✏️</button>
+              <button onclick="deleteCategory('${id}')">🗑️</button>
+            </td>
+          </tr>
+        `;
+        select.innerHTML += `<option value="${data.name}">${data.name}</option>`;
+        editSelect.innerHTML += `<option value="${data.name}">${data.name}</option>`;
+      });
+    });
+  }
+
+  // إضافة فئة
+  document.getElementById("category-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("category-name").value.trim();
+    const image = document.getElementById("category-image").value.trim();
+    if (!name || !image) return;
+
+    addDoc(collection(db, "categories"), { name, image }).then(() => {
+      loadCategories();
+      e.target.reset();
+    });
+  });
+
+  // تعديل فئة
+  window.openCategoryModal = function (id, name, image) {
+    currentCategoryId = id;
+    document.getElementById("edit-category-name").value = name;
+    document.getElementById("edit-category-image").value = image;
+    document.getElementById("edit-category-modal").style.display = "flex";
+  };
+  window.closeCategoryModal = function () {
+    document.getElementById("edit-category-modal").style.display = "none";
+  };
+  window.saveCategoryEdit = function () {
+    const name = document.getElementById("edit-category-name").value.trim();
+    const image = document.getElementById("edit-category-image").value.trim();
+    updateDoc(doc(db, "categories", currentCategoryId), { name, image }).then(() => {
+      closeCategoryModal();
+      loadCategories();
+    });
+  };
+  window.deleteCategory = function (id) {
+    if (confirm("هل تريد حذف الفئة؟")) {
+      deleteDoc(doc(db, "categories", id)).then(() => {
+        loadCategories();
+      });
+    }
+  };
+
+  // تحميل المنتجات
+  function loadProducts() {
+    const tbody = document.querySelector("#products-table tbody");
+    tbody.innerHTML = "";
+
+    getDocs(collection(db, "products")).then(snapshot => {
+      snapshot.forEach((docSnap, i) => {
+        const data = docSnap.data();
+        const id = docSnap.id;
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${data.name}</td>
+            <td>${data.price}</td>
+            <td>${data.category}</td>
+            <td><img src="${data.image}" /></td>
+            <td>
+              <button onclick="openProductModal('${id}', '${data.name}', '${data.price}', '${data.image}', '${data.category}')">✏️</button>
+              <button onclick="deleteProduct('${id}')">🗑️</button>
+            </td>
+          </tr>
+        `;
+      });
+    });
+  }
+
+  // إضافة منتج
+  document.getElementById("product-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("product-name").value.trim();
+    const price = document.getElementById("product-price").value.trim();
+    const image = document.getElementById("product-image").value.trim();
+    const category = document.getElementById("product-category").value;
+    if (!name || !price || !image || !category) return;
+
+    addDoc(collection(db, "products"), { name, price, image, category }).then(() => {
+      loadProducts();
+      e.target.reset();
+    });
+  });
+
+  // تعديل منتج
+  window.openProductModal = function (id, name, price, image, category) {
+    currentProductId = id;
+    document.getElementById("edit-product-name").value = name;
+    document.getElementById("edit-product-price").value = price;
+    document.getElementById("edit-product-image").value = image;
+    document.getElementById("edit-product-category").value = category;
+    document.getElementById("edit-product-modal").style.display = "flex";
+  };
+  window.closeProductModal = function () {
+    document.getElementById("edit-product-modal").style.display = "none";
+  };
+  window.saveProductEdit = function () {
+    const name = document.getElementById("edit-product-name").value.trim();
+    const price = document.getElementById("edit-product-price").value.trim();
+    const image = document.getElementById("edit-product-image").value.trim();
+    const category = document.getElementById("edit-product-category").value;
+
+    updateDoc(doc(db, "products", currentProductId), { name, price, image, category }).then(() => {
+      closeProductModal();
+      loadProducts();
+    });
+  };
+  window.deleteProduct = function (id) {
+    if (confirm("هل تريد حذف المنتج؟")) {
+      deleteDoc(doc(db, "products", id)).then(() => {
+        loadProducts();
+      });
+    }
+  };
+</script>
+</body>
+</html>
